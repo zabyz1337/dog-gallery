@@ -6,8 +6,8 @@ const API = "https://dog.ceo/api/breeds/image/random";
 export default function DogGallery() {
   const [dogs, setDogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
   const [isAdding, setIsAdding] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchInitialDogs();
@@ -40,6 +40,20 @@ export default function DogGallery() {
     }
   };
 
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      const requests = dogs.map(() => axios.get(API));
+      const responses = await Promise.all(requests);
+      const urls = responses.map((res) => res.data.message);
+      setDogs(urls);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h2>Dog Gallery</h2>
@@ -55,7 +69,10 @@ export default function DogGallery() {
           {isAdding ? "Добавляю..." : "Добавить собаку"}
         </button>
 
-        <button>Обновить всё</button>
+        <button onClick={handleRefreshAll} disabled={isRefreshing}>
+          {isRefreshing ? "Обновляю..." : "Обновить всё"}
+        </button>
+
         <button>Очистить всё</button>
       </div>
 
