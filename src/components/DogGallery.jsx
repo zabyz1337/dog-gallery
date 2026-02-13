@@ -8,6 +8,7 @@ export default function DogGallery() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchInitialDogs();
@@ -15,14 +16,15 @@ export default function DogGallery() {
 
   const fetchInitialDogs = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const requests = [axios.get(API), axios.get(API), axios.get(API)];
-
       const responses = await Promise.all(requests);
       const urls = responses.map((res) => res.data.message);
       setDogs(urls);
     } catch (error) {
       console.error(error);
+      setError("Ошибка загрузки собак");
     } finally {
       setIsLoading(false);
     }
@@ -30,11 +32,13 @@ export default function DogGallery() {
 
   const handleAddDog = async () => {
     setIsAdding(true);
+    setError(null);
     try {
       const response = await axios.get(API);
       setDogs((prev) => [...prev, response.data.message]);
     } catch (error) {
       console.error(error);
+      setError("Ошибка загрузки собак");
     } finally {
       setIsAdding(false);
     }
@@ -42,13 +46,16 @@ export default function DogGallery() {
 
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
+    setError(null);
     try {
-      const requests = dogs.map(() => axios.get(API));
+      const count = dogs.length || 3;
+      const requests = Array.from({ length: count }, () => axios.get(API));
       const responses = await Promise.all(requests);
       const urls = responses.map((res) => res.data.message);
       setDogs(urls);
     } catch (error) {
       console.error(error);
+      setError("Ошибка загрузки собак");
     } finally {
       setIsRefreshing(false);
     }
@@ -56,7 +63,9 @@ export default function DogGallery() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Dog Gallery</h2>
+      <h1>Dog Gallery</h1>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <div>
         <strong>Загружено собак: {dogs.length}</strong>
@@ -73,13 +82,13 @@ export default function DogGallery() {
           {isRefreshing ? "Обновляю..." : "Обновить всё"}
         </button>
 
-        <button>Очистить всё</button>
+        <button onClick={() => setDogs([])}>Очистить всё</button>
       </div>
 
       <div>
         {dogs.map((dog, index) => (
           <img
-            key={index}
+            key={`${dog}-${index}`}
             src={dog}
             alt="dog"
             width="200"
