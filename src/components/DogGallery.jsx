@@ -7,6 +7,8 @@ export default function DogGallery() {
   const [dogs, setDogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isAdding, setIsAdding] = useState(false);
+
   useEffect(() => {
     fetchInitialDogs();
   }, []);
@@ -26,6 +28,18 @@ export default function DogGallery() {
     }
   };
 
+  const handleAddDog = async () => {
+    setIsAdding(true);
+    try {
+      const response = await axios.get(API);
+      setDogs((prev) => [...prev, response.data.message]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h2>Dog Gallery</h2>
@@ -37,7 +51,10 @@ export default function DogGallery() {
       {isLoading && <p>Загрузка...</p>}
 
       <div style={{ display: "flex", gap: 10, margin: "15px 0" }}>
-        <button>Добавить собаку</button>
+        <button onClick={handleAddDog} disabled={isAdding}>
+          {isAdding ? "Добавляю..." : "Добавить собаку"}
+        </button>
+
         <button>Обновить всё</button>
         <button>Очистить всё</button>
       </div>
